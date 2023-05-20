@@ -17,10 +17,6 @@ const Home = () => {
         })
     },[])
 
-    function deleteCompany(id) {
-      deleteCompanyByID(id);
-    }
-    
 
   const columns = [
     {
@@ -41,7 +37,10 @@ const Home = () => {
     },
     {
       title: 'Delete',
-      render: (value)=> <Button onClick={()=> deleteCompany(value.id)}>Delete</Button>
+      render: (value)=> <Button onClick={()=>{
+        console.log(value.id);
+        deleteCompanyByID(value.id)
+      }}>Delete</Button>
     },
     {
       title: 'Update',

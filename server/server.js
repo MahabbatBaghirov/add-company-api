@@ -2,10 +2,14 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const crypto = require('crypto');
+const mongoose = require("mongoose");
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 const PORT = 7070;
+const pass = "mehebbet123"
+const link = `mongodb+srv://mehebbet:${pass}@cluster0.vglcwjt.mongodb.net/?retryWrites=true&w=majority`
+
 const COMPANY = [
   {
     id: 1,
@@ -33,63 +37,77 @@ const COMPANY = [
   }
 ];
 
+
+
+const CompanySchema = new mongoose.Schema({
+  companyName: String,
+  contactName: String,
+  contactTitle: String
+});
+const Companies = new mongoose.model("Compani",CompanySchema);
+
+
+
+
 app.get("/api", (req, res) => {
   res.send("welcome to our API!");
 });
 
 //ARTISTS CRUD
 //GET ALL ARTISTS
-app.get("/api/company", (req, res) => {
+app.get("/api/company", async(req, res) => {
   const { companyName } = req.query;
+  const company = await Companies.find();
   if (!companyName) {
-    res.status(200).send(COMPANY);
+    res.status(200).send(company);
   } else {
     res
       .status(200)
       .send(
-        COMPANY.filter((x) =>
+        company.filter((x) =>
           x.companyName.toLowerCase().trim().includes(companyName.toLowerCase().trim())
         )
       );
   }
 });
+
 //GET ARTIST BY ID
-app.get('/api/company/:id',(req,res)=>{
+app.get('/api/company/:id', async(req,res)=>{
     const{id} = req.params;
-    res.status(200).send(COMPANY.find((x)=>x.id==id))
+    const company = await Companies.findById(id)
+    res.status(200).send(company)
 })
+
 //DELETE ARTIST
-app.delete('/api/company/:id',(req,res)=>{
+app.delete('/api/company/:id',async(req,res)=>{
     const id = req.params.id;
-    //delete
-    const deleteCompany = COMPANY.find((x)=>x.id==id);
-    const idx = COMPANY.indexOf(deleteArtist);
-    COMPANY.splice(idx,1);
+    const deleteCompany = await Companies.findByIdAndDelete(id);
     res.status(203).send({
-        message: `${deleteCompany.name} deleted successfully!`
+        message: `${deleteCompany.companyName} deleted successfully!`
     })
 })
 //POST ARTIST
-app.post('/api/company',(req,res)=>{
+app.post('/api/company',async(req,res)=>{
     const{companyName,contactName,contactTitle} = req.body;
-    const newCompany = {
-        id: crypto.randomUUID(),
-        companyName: companyName,
-        contactName: contactName,
-        contactTitle: contactTitle,
-    }
-    COMPANY.push(newCompany);
+    const newComp = new Companies ({
+      id: crypto.randomUUID(),
+      companyName: companyName,
+      contactName: contactName,
+      contactTitle: contactTitle,
+  });
+  await newComp.save();
 
     res.status(201).send({
-        message: `${newCompany.name} posted successfully`,
-        payload: newCompany
+        message: `${newComp.companyName} posted successfully`,
+        payload: newComp
     })
 })
 //EDIT ARTIST
-app.put('/api/company/:id',(req,res)=>{
+app.put('/api/company/:id',async(req,res)=>{
     const id = req.params.id;
-    const updatingCompany = COMPANY.find((x)=>x.id==id);
     const{companyName,contactName,contactTitle} = req.body;
+    const updatingCompany = {companyName:companyName,contactName:contactName,contactTitle:contactTitle};
+    await Companies.findByIdAndUpdate(id,updatingCompany);
     if (companyName) {
         updatingCompany.companyName = companyName;
     }
@@ -104,4 +122,9 @@ app.put('/api/company/:id',(req,res)=>{
  
 app.listen(PORT, () => {
   console.log(`App running on PORT: ${PORT}`);
+});
+
+
+mongoose.connect(link.replace("<password>",pass)).then(() => {
+  console.log("Mongo DB connected!");
 });

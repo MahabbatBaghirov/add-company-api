@@ -27,21 +27,19 @@ export const getCompanyByID = async(id)=>{
     .then(res =>{ 
         Company = res.data;
     })
-
     return Company
 }
+
 //delete
-export const deleteCompanyByID = async(id)=>{
-    let message;
-    await axios.delete(`${BASE_URL}/company/${id}`).then(res=>{
-        message = res.data
-    })
-    return message
+export const deleteCompanyByID = (id)=>{
+    axios.delete(`${BASE_URL}/company/${id}`)
 }
+
 //post
 export const postCompany = (payload)=>{
     axios.post(`${BASE_URL}/company`,payload)
 }
+
 //edit
 export const editCompanyByID = (id,payload)=>{
     axios.put(`${BASE_URL}/company/${id}`,payload)
